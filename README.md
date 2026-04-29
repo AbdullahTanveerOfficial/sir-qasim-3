@@ -4,8 +4,8 @@ A full-stack Kanban-style task manager built with **MongoDB, Express, React, Nod
 Designed to be testable with **Selenium + JUnit 5** (15 test cases included).
    
 ---
-
-## Application Overview
+     
+## Application Overview is
 
 | Layer     | Technology              |
 |-----------|-------------------------|
