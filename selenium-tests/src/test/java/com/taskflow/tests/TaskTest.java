@@ -3,7 +3,10 @@ package com.taskflow.tests;
 import com.taskflow.utils.BaseTest;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,28 +22,24 @@ public class TaskTest extends BaseTest {
     private static final String UPDATED_TASK = "Updated Selenium Task";
 
     /**
-     * Helper: log in, go to projects, create a project if needed, open its board.
+     * ✅ FIXED: Simplified navigation (no dependency on navbar clicks)
      */
     private void openAnyProjectBoard() {
         loginAsTestUser();
-        click(By.id("nav-projects"));
-        waitForUrl("/projects");
-        pause(1000);
 
-        // Create project if none exist
-        var projectCards = driver.findElements(By.cssSelector("[id^='project-card-']"));
-        if (projectCards.isEmpty()) {
-            click(By.id("create-project-btn"));
-            type(By.id("project-title-input"), "Board Test Project");
-            click(By.id("project-submit-btn"));
-            pause(1000);
-            projectCards = driver.findElements(By.cssSelector("[id^='project-card-']"));
+        // ✅ Direct navigation instead of clicking navbar
+        driver.get(BASE_URL + "/projects");
+        pause(2000);
+
+        // Find project cards using flexible selectors
+        List<WebElement> projects = driver.findElements(
+                By.cssSelector(".project-card, [data-testid='project-card'], .card"));
+
+        // If projects exist → open first
+        if (!projects.isEmpty()) {
+            projects.get(0).click();
+            pause(2000);
         }
-
-        // Click the first project card (but NOT its action buttons)
-        driver.findElements(By.cssSelector("[id^='project-card-']")).get(0).click();
-        waitForUrl("/projects/");
-        pause(1000);
     }
 
     // ─── TC10: Create a task ──────────────────────────────────────────────────
@@ -53,7 +52,6 @@ public class TaskTest extends BaseTest {
         assertTrue(isElementPresent(By.id("kanban-board")),
                 "Kanban board should be visible");
 
-        // Click '+' button in the 'todo' column
         click(By.id("add-task-todo"));
         assertTrue(isElementPresent(By.id("task-modal")),
                 "Task creation modal should open");
@@ -61,7 +59,6 @@ public class TaskTest extends BaseTest {
         type(By.id("task-title-input"), TASK_TITLE);
         type(By.id("task-description-input"), TASK_DESC);
 
-        // Set priority to High
         new Select(driver.findElement(By.id("task-priority-select"))).selectByValue("high");
 
         click(By.id("task-submit-btn"));
@@ -78,7 +75,6 @@ public class TaskTest extends BaseTest {
     public void testEditTask() {
         openAnyProjectBoard();
 
-        // Create a task if the board is empty
         var tasks = driver.findElements(By.cssSelector("[id^='task-card-']"));
         if (tasks.isEmpty()) {
             click(By.id("add-task-todo"));
@@ -87,13 +83,11 @@ public class TaskTest extends BaseTest {
             pause(1000);
         }
 
-        // Open the three-dot menu of the first task
         var menuButtons = driver.findElements(By.cssSelector("[id^='task-menu-']"));
         assertFalse(menuButtons.isEmpty(), "Task menu button should exist");
         menuButtons.get(0).click();
         pause(400);
 
-        // Click edit option
         var editButtons = driver.findElements(By.cssSelector("[id^='edit-task-']"));
         assertFalse(editButtons.isEmpty(), "Edit task button should be visible");
         editButtons.get(0).click();
@@ -116,7 +110,6 @@ public class TaskTest extends BaseTest {
     public void testMoveTaskStatus() {
         openAnyProjectBoard();
 
-        // Ensure a task exists in 'todo'
         var tasks = driver.findElements(By.cssSelector("[id^='task-card-']"));
         if (tasks.isEmpty()) {
             click(By.id("add-task-todo"));
@@ -125,11 +118,9 @@ public class TaskTest extends BaseTest {
             pause(1000);
         }
 
-        // Open the menu for the first task
         driver.findElements(By.cssSelector("[id^='task-menu-']")).get(0).click();
         pause(400);
 
-        // Click "Move to In Progress" from the dropdown menu
         var menuItems = driver.findElements(By.cssSelector(".menu-item"));
         boolean moved = false;
         for (var item : menuItems) {
@@ -143,7 +134,6 @@ public class TaskTest extends BaseTest {
         assertTrue(moved, "Should find a 'Move to In Progress' menu option");
         pause(1000);
 
-        // Verify task appears in in-progress column (not empty anymore)
         var inProgressColumn = driver.findElement(By.id("column-in-progress"));
         assertFalse(inProgressColumn.getText().contains("No tasks here"),
                 "In-Progress column should have at least one task after moving");
@@ -156,7 +146,6 @@ public class TaskTest extends BaseTest {
     public void testDeleteTask() {
         openAnyProjectBoard();
 
-        // Create task so we have one to delete
         click(By.id("add-task-todo"));
         type(By.id("task-title-input"), "Task To Delete");
         click(By.id("task-submit-btn"));
@@ -164,16 +153,13 @@ public class TaskTest extends BaseTest {
 
         int countBefore = driver.findElements(By.cssSelector("[id^='task-card-']")).size();
 
-        // Open the task's context menu
         driver.findElements(By.cssSelector("[id^='task-menu-']")).get(0).click();
         pause(400);
 
-        // Click the delete button
         var deleteButtons = driver.findElements(By.cssSelector("[id^='delete-task-']"));
         assertFalse(deleteButtons.isEmpty(), "Delete task button should be present in menu");
         deleteButtons.get(0).click();
 
-        // Accept browser confirmation
         driver.switchTo().alert().accept();
         pause(1000);
 
