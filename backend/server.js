@@ -32,23 +32,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'TaskFlow API is running' });
 });
 
+// ✅ Serve frontend in production (PLACED CORRECTLY)
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+    }
+  });
+}
+
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB Connected to:', process.env.MONGO_URI);
-
-    // ✅ Serve frontend build in production
-    if (process.env.NODE_ENV === 'production') {
-      const buildPath = path.join(__dirname, '../frontend/build');
-
-      app.use(express.static(buildPath));
-
-      app.get('*', (req, res) => {
-        if (!req.path.startsWith('/api')) {
-          res.sendFile(path.join(buildPath, 'index.html'));
-        }
-      });
-    }
 
     // ✅ Start server AFTER everything is configured
     const PORT = process.env.PORT || 5000;
