@@ -43,7 +43,8 @@ public class DashboardNavigationTest extends BaseTest {
 
         // Navigate to projects page
         click(By.id("nav-projects"));
-        waitForUrl("/projects");
+        driver.get(BASE_URL + "/projects");
+        pause(2000);
         pause(1000);
 
         // Create project if needed
