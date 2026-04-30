@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy and install backend
+# Install backend dependencies
 COPY backend/package*.json ./backend/
 RUN cd backend && npm install
 
-# Copy and install frontend
+# Install frontend dependencies  
 COPY frontend/package*.json ./frontend/
 RUN cd frontend && npm install
 
@@ -17,6 +17,10 @@ COPY frontend ./frontend
 # Build frontend for production
 RUN cd frontend && npm run build
 
-EXPOSE 5000 3000
+# Install serve to host frontend
+RUN npm install -g serve
 
-CMD ["node", "backend/server.js"]
+EXPOSE 3000 5000
+
+# Start both backend and frontend
+CMD sh -c "node backend/server.js & serve -s frontend/build -l 3000"
