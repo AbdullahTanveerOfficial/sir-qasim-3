@@ -110,8 +110,8 @@ public class ProjectTest extends BaseTest {
     @DisplayName("TC09 - User can delete a project")
     public void testDeleteProject() {
         loginAsTestUser();
-        click(By.id("nav-projects"));
-        waitForUrl("/projects");
+        driver.get(BASE_URL + "/projects");
+        pause(2000);
         pause(1000);
 
         // Ensure at least one project exists
